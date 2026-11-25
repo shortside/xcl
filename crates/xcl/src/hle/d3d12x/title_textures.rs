@@ -1699,6 +1699,9 @@ impl TitleMemory {
                 // copy that tolerates it leaves such a page zero. Not on a Mac: Wine's server
                 // reads another way there – it suspends the whole process for each call)
                 src if src == at && !crate::util::mac_host() => copy_committed_region(src, dst, chunk),
+                // (there a page that goes mid-copy – at the address or where a view's page
+                // is – is left out by a copy that survives the fault, `guarded_copy`)
+                src if crate::util::mac_host() => all &= super::guarded_copy::copy(src, dst, chunk),
                 src => std::ptr::copy_nonoverlapping(src as *const u8, dst, chunk),
             }
             at += chunk;
